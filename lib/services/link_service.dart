@@ -9,6 +9,9 @@ class LinkService {
 
   final SupabaseClient? _client;
 
+  // TODO(production): add rate limiting before public launch. Supabase free tier
+  // has bandwidth limits and the anon key is exposed in the compiled bundle.
+
   // Defer Supabase.instance access so widget/unit tests can build the UI before
   // real SUPABASE_URL and SUPABASE_ANON_KEY values exist.
   SupabaseClient get _supabase => _client ?? Supabase.instance.client;
@@ -56,6 +59,18 @@ class LinkService {
     if (data == null) return null;
 
     unawaitedClickIncrement(shortCode);
+    return LinkModel.fromJson(data);
+  }
+
+  /// Fetches the current link row for the stats page.
+  Future<LinkModel?> getLinkStats(String shortCode) async {
+    final data = await _supabase
+        .from('links')
+        .select()
+        .eq('short_code', shortCode)
+        .maybeSingle();
+
+    if (data == null) return null;
     return LinkModel.fromJson(data);
   }
 

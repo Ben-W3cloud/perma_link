@@ -188,10 +188,11 @@ packages:
   dartus:
     dependency: "direct main"
     description:
-      name: dartus
-      sha256: "4126b1bffc4dafd75aab591b0fc17fd14fcf597e948e7bdc5dea6c107f35593a"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "fix/web-safe-barrel"
+      resolved-ref: "9bf520da97a188812be9a0ed33061881c564bdb8"
+      url: "https://github.com/Ben-W3cloud/Dartus.git"
+    source: git
     version: "0.2.0"
   dio:
     dependency: transitive
@@ -320,6 +321,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "14.8.1"
+  google_fonts:
+    dependency: "direct main"
+    description:
+      name: google_fonts
+      sha256: ba03d03bcaa2f6cb7bd920e3b5027181db75ab524f8891c8bc3aa603885b8055
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.3.3"
   gotrue:
     dependency: transitive
     description:

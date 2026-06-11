@@ -1,3 +1,6 @@
+import 'package:fluffy_link/core/utils/code_validator.dart';
+import 'package:fluffy_link/core/utils/error_messages.dart';
+import 'package:fluffy_link/screens/redirect/widgets/loading_view.dart';
 import 'package:fluffy_link/services/link_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -26,6 +29,10 @@ class _RedirectScreenState extends State<RedirectScreen> {
   @override
   void initState() {
     super.initState();
+    if (!CodeValidator.isValidShortCode(widget.code)) {
+      _notFound = true;
+      return;
+    }
     _resolve();
   }
 
@@ -45,17 +52,14 @@ class _RedirectScreenState extends State<RedirectScreen> {
       }
     } catch (error) {
       if (!mounted) return;
-      setState(() => _errorMessage = error.toString());
+      setState(() => _errorMessage = ErrorMessages.forRedirect(error));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_notFound) {
-      return const _RedirectMessage(
-        title: '404 - Link not found',
-        actionLabel: 'Go home',
-      );
+      return const _RedirectNotFound();
     }
 
     final error = _errorMessage;
@@ -63,12 +67,42 @@ class _RedirectScreenState extends State<RedirectScreen> {
       return _RedirectMessage(
         title: 'Redirect failed',
         message: error,
-        actionLabel: 'Go home',
+        actionLabel: 'Go to Perma.link',
       );
     }
 
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+    return const LoadingView(message: 'Resolving link...');
+  }
+}
+
+class _RedirectNotFound extends StatelessWidget {
+  const _RedirectNotFound();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Link not found', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              Text(
+                "This link doesn't exist or may have expired.",
+                style: TextStyle(color: Colors.grey.shade600),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: () => context.go('/'),
+                child: const Text('Go to Perma.link'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

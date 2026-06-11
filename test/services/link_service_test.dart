@@ -18,9 +18,10 @@ void main() {
     expect(link.fileSize, 2048);
     expect(link.clickCount, 4);
     expect(link.shortUrl, 'https://perma.link/abc123');
+    expect(link.statsUrl, 'https://perma.link/s/abc123');
     expect(
       link.walrusUrl,
-      'https://aggregator.walrus-testnet.walrus.space/v1/blobs/blob-id',
+      'https://aggregator.walrus-testnet.walrus.space/v1/blob-id',
     );
   });
 }

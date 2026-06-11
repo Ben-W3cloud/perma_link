@@ -1,7 +1,15 @@
 import 'dart:typed_data';
-
 import 'package:dartus/dartus.dart';
 import 'package:fluffy_link/core/constants.dart';
+
+class WalrusUploadException implements Exception {
+  const WalrusUploadException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
 
 class WalrusService {
   WalrusService({WalrusClient? client}) : _client = client ?? _createClient();
@@ -20,33 +28,43 @@ class WalrusService {
   /// Uploads bytes to Walrus and returns the certified blob ID.
   Future<String> uploadBlob(List<int> bytes, {int retries = 2}) async {
     if (bytes.isEmpty) {
-      throw ArgumentError.value(bytes, 'bytes', 'Cannot upload an empty file.');
+      throw const WalrusUploadException('Cannot upload an empty file.');
     }
 
     for (var attempt = 0; attempt <= retries; attempt++) {
       try {
         return await _doUpload(bytes);
       } on RetryableWalrusClientError {
-        // README mentions _client.reset(), but Dartus 0.2.0 does not expose it.
-        // Backoff and retry the HTTP upload instead.
-        if (attempt == retries) rethrow;
+        if (attempt == retries) break;
         await Future<void>.delayed(Duration(seconds: attempt + 1));
       } on WalrusApiError catch (error) {
-        if (!_isRetryableApiError(error) || attempt == retries) rethrow;
+        if (!_isRetryableApiError(error) || attempt == retries) break;
         await Future<void>.delayed(Duration(seconds: attempt + 1));
+      } on FormatException {
+        throw const WalrusUploadException(
+          'Storage service unavailable. Try again in a moment.',
+        );
       }
     }
 
-    throw StateError('Upload failed after $retries retries.');
+    throw const WalrusUploadException(
+      'Storage service unavailable. Try again in a moment.',
+    );
   }
 
   Future<String> _doUpload(List<int> bytes) async {
-    final response = await _client.putBlob(
-      // Dartus 0.2.0 requires Uint8List even though the README uses List<int>.
-      data: Uint8List.fromList(bytes),
-      epochs: AppConstants.storageEpochs,
-    );
-    return extractBlobId(response);
+    try {
+      final response = await _client.putBlob(
+        data: Uint8List.fromList(bytes),
+        epochs: AppConstants.storageEpochs,
+      );
+      return extractBlobId(response);
+    } catch (e, stackTrace) {
+      print('UPLOAD ERROR TYPE: ${e.runtimeType}');
+      print('UPLOAD ERROR: $e');
+      print('STACK: $stackTrace');
+      rethrow;
+    }
   }
 
   static String extractBlobId(Map<String, dynamic> response) {
@@ -68,7 +86,6 @@ class WalrusService {
     throw const FormatException('Walrus upload returned no blobId.');
   }
 
-  // close() is async in Dartus 0.2.0; callers can fire-and-forget from dispose.
   Future<void> dispose() => _client.close();
 
   bool _isRetryableApiError(WalrusApiError error) {

@@ -1011,5 +1011,4 @@ Both are passed at **compile time** via `--dart-define`. There is no runtime `.e
 
 ---
 
-*Built with Dartus SDK (Walrus decentralized storage) · Supabase · Flutter Web · Vercel*
-Using the code in the README file from line 265 to 928, i want you to place the code in the readme files to their respective files in their codebase, ensure to use best practices amd write clean readable code taht is well commented. Feel free to read the entire README for more context.
+*Built with Dartus SDK (Walrus decentralized storage) · Supabase · Flutter Web · Vercel*L2hi_cnn?M4X@-W
