@@ -6,6 +6,9 @@ class AppConstants {
       'https://publisher.walrus-testnet.walrus.space';
   static const String walrusAggregator =
       'https://aggregator.walrus-testnet.walrus.space';
+  // Endpoint paths
+  static const String walrusStorePath = '/v1/blobs'; // PUT to upload
+  static const String walrusReadPath = '/v1/blobs'; // GET to retrieve
 
   // Walrus testnet epochs are roughly one day.
   static const int storageEpochs = 3;

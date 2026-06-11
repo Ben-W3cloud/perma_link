@@ -90,6 +90,8 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } catch (error) {
       if (!mounted) return;
+      print('HOME ERROR TYPE: ${error.runtimeType}');
+      print('HOME ERROR: $error');
       _showError(ErrorMessages.forUpload(error));
     }
   }
@@ -122,7 +124,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: switch (_state) {
-                UploadState.idle => _UploadPicker(onBrowse: _handleFilePick, onFileDrop: _upload),
+                UploadState.idle => _UploadPicker(
+                  onBrowse: _handleFilePick,
+                  onFileDrop: _upload,
+                ),
                 UploadState.uploading => UploadProgress(
                   fileName: _uploadingFileName,
                   phase: _phase,
@@ -152,10 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _UploadPicker extends StatelessWidget {
-  const _UploadPicker({
-    required this.onBrowse,
-    required this.onFileDrop,
-  });
+  const _UploadPicker({required this.onBrowse, required this.onFileDrop});
 
   final VoidCallback onBrowse;
   final Future<void> Function(PlatformFile file) onFileDrop;

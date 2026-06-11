@@ -35,7 +35,7 @@ class LinkModel {
 
   String get statsUrl => '${AppConstants.appDomain}/s/$shortCode';
 
-  String get walrusUrl => '${AppConstants.walrusAggregator}/v1/$blobId';
+  String get walrusUrl => '${AppConstants.walrusAggregator}/v1/blobs/$blobId';
 
   static int? _readNullableInt(Object? value) => _readInt(value);
 
