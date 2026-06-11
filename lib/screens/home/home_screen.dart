@@ -9,6 +9,7 @@ import 'package:fluffy_link/screens/home/widgets/success_card.dart';
 import 'package:fluffy_link/screens/home/widgets/upload_progress.dart';
 import 'package:fluffy_link/services/link_service.dart';
 import 'package:fluffy_link/services/walrus_service.dart';
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 
 enum UploadState { idle, uploading, done, error }
@@ -90,8 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } catch (error) {
       if (!mounted) return;
-      print('HOME ERROR TYPE: ${error.runtimeType}');
-      print('HOME ERROR: $error');
+      developer.log('Home upload error', error: error, name: 'HomeScreen._upload');
       _showError(ErrorMessages.forUpload(error));
     }
   }

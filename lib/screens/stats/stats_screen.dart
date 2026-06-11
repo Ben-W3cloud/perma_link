@@ -9,11 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 class StatsScreen extends StatefulWidget {
-  const StatsScreen({
-    super.key,
-    required this.code,
-    LinkService? linkService,
-  }) : _linkService = linkService;
+  const StatsScreen({super.key, required this.code, LinkService? linkService})
+    : _linkService = linkService ?? LinkService();
 
   final String code;
   final LinkService? _linkService;
@@ -38,7 +35,10 @@ class _StatsScreenState extends State<StatsScreen> {
       return;
     }
     _loadStats();
-    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) => _loadStats());
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _loadStats(),
+    );
   }
 
   Future<void> _loadStats() async {
@@ -68,10 +68,22 @@ class _StatsScreenState extends State<StatsScreen> {
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
-    final hour = date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
+    final hour = date.hour > 12
+        ? date.hour - 12
+        : (date.hour == 0 ? 12 : date.hour);
     final amPm = date.hour >= 12 ? 'PM' : 'AM';
     final minute = date.minute.toString().padLeft(2, '0');
     return '${months[date.month - 1]} ${date.day}, ${date.year} $hour:$minute $amPm';
@@ -115,14 +127,14 @@ class _StatsScreenState extends State<StatsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Link stats', style: Theme.of(context).textTheme.headlineSmall),
+                  Text(
+                    'Link stats',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 32),
                   _LinkBox(url: link.shortUrl),
                   const SizedBox(height: 24),
-                  _StatRow(
-                    label: 'Clicks',
-                    value: link.clickCount.toString(),
-                  ),
+                  _StatRow(label: 'Clicks', value: link.clickCount.toString()),
                   const SizedBox(height: 12),
                   _StatRow(
                     label: 'Uploaded',
@@ -217,7 +229,10 @@ class _StatsNotFound extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Link not found', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Link not found',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 12),
               Text(
                 "This link doesn't exist or may have expired.",
