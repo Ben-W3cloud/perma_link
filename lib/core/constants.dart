@@ -17,5 +17,5 @@ class AppConstants {
   static const int maxFileSizeBytes = 10 * 1024 * 1024;
 
   // Change this before deploying with a real domain.
-  static const String appDomain = 'https://perma.link';
+  static const String appDomain = 'https://permalink-gamma.vercel.app/';
 }
