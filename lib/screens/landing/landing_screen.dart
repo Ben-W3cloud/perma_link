@@ -19,7 +19,9 @@ class LandingScreen extends StatefulWidget {
 class _LandingScreenState extends State<LandingScreen> {
   final ScrollController _scrollController = ScrollController();
   final ValueNotifier<double> _scrollOffset = ValueNotifier<double>(0);
-  final GlobalKey _showcaseKey = GlobalKey();
+  final GlobalKey _whyKey = GlobalKey();
+  final GlobalKey _featuresKey = GlobalKey();
+  final GlobalKey _workflowKey = GlobalKey();
 
   @override
   void initState() {
@@ -31,8 +33,8 @@ class _LandingScreenState extends State<LandingScreen> {
     _scrollOffset.value = _scrollController.offset;
   }
 
-  Future<void> _scrollToShowcase() async {
-    final context = _showcaseKey.currentContext;
+  Future<void> _scrollToSection(GlobalKey key) async {
+    final context = key.currentContext;
     if (context == null) return;
 
     await Scrollable.ensureVisible(
@@ -41,6 +43,10 @@ class _LandingScreenState extends State<LandingScreen> {
       curve: Curves.easeInOutCubic,
       alignment: 0.03,
     );
+  }
+
+  Future<void> _scrollToWorkflow() async {
+    await _scrollToSection(_workflowKey);
   }
 
   @override
@@ -63,21 +69,23 @@ class _LandingScreenState extends State<LandingScreen> {
               children: [
                 _HeroSection(
                   scrollOffset: _scrollOffset,
-                  onExplore: _scrollToShowcase,
+                  onExplore: _scrollToWorkflow,
                 ),
                 _SlantedTransition(),
                 _ScrollReveal(
-                  key: _showcaseKey,
+                  key: _whyKey,
                   scrollController: _scrollController,
-                  child: const _AboutSection(),
+                  child: const _WhySection(),
                 ),
                 _ScrollReveal(
+                  key: _featuresKey,
                   scrollController: _scrollController,
-                  child: const _ShowcaseSection(),
+                  child: const _FeaturesSection(),
                 ),
                 _ScrollReveal(
+                  key: _workflowKey,
                   scrollController: _scrollController,
-                  child: const _ProtocolSection(),
+                  child: const _WorkflowSection(),
                 ),
                 _ScrollReveal(
                   scrollController: _scrollController,
@@ -87,9 +95,15 @@ class _LandingScreenState extends State<LandingScreen> {
               ],
             ),
           ),
-          const SafeArea(
+          SafeArea(
             bottom: false,
-            child: AppNavBar(currentRoute: '/'),
+            child: AppNavBar(
+              currentRoute: '/',
+              scrollController: _scrollController,
+              onScrollToWhy: () => _scrollToSection(_whyKey),
+              onScrollToFeatures: () => _scrollToSection(_featuresKey),
+              onScrollToWorkflow: () => _scrollToSection(_workflowKey),
+            ),
           ),
         ],
       ),
@@ -132,10 +146,7 @@ class _HeroSectionState extends State<_HeroSection> {
                     child: child,
                   );
                 },
-                child: const Opacity(
-                  opacity: 0.55,
-                  child: NetworkBackground(),
-                ),
+                child: const Opacity(opacity: 0.55, child: NetworkBackground()),
               ),
             ),
           ),
@@ -199,12 +210,9 @@ class _HeroSectionState extends State<_HeroSection> {
                     isMobile ? 20 : 48,
                     isMobile ? 44 : 36,
                   ),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 900),
-                    child: _HeroCopy(
-                      isMobile: isMobile,
-                      onExplore: widget.onExplore,
-                    ),
+                  child: _HeroCopy(
+                    isMobile: isMobile,
+                    onExplore: widget.onExplore,
                   ),
                 ),
               ),
@@ -224,8 +232,6 @@ class _HeroCopy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleSize = isMobile ? 84.0 : 148.0;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -237,31 +243,9 @@ class _HeroCopy extends StatelessWidget {
         StaggeredFadeIn(
           delay: const Duration(milliseconds: 180),
           child: Padding(
-            padding: const EdgeInsets.only(top: 18),
-            child: Text(
-              'PERMA.LINK',
-              maxLines: 1,
-              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                fontSize: titleSize,
-                height: 0.88,
-                letterSpacing: 0,
-                shadows: [
-                  Shadow(
-                    color: AppTheme.primary.withValues(alpha: 0.24),
-                    blurRadius: 28,
-                  ),
-                ],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-        StaggeredFadeIn(
-          delay: const Duration(milliseconds: 280),
-          child: Padding(
             padding: EdgeInsets.only(top: isMobile ? 12 : 16),
             child: Text(
-              'Share files that stay reachable.',
+              'Permanent links\nfor permanent files',
               style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                 fontSize: isMobile ? 30 : 48,
                 fontWeight: FontWeight.w900,
@@ -273,20 +257,13 @@ class _HeroCopy extends StatelessWidget {
           ),
         ),
         StaggeredFadeIn(
-          delay: const Duration(milliseconds: 380),
-          child: Padding(
-            padding: EdgeInsets.only(top: isMobile ? 14 : 20),
-            child: _WalrusBadge(isMobile: isMobile),
-          ),
-        ),
-        StaggeredFadeIn(
           delay: const Duration(milliseconds: 500),
           child: Padding(
             padding: EdgeInsets.only(top: isMobile ? 18 : 24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 620),
               child: Text(
-                'Perma.link turns Walrus storage into clean, memorable file links. Upload once, get a short URL, and keep the file available without sending people a long blob identifier.',
+                'Stop sharing raw blob IDs. Upload any file to Walrus and get a clean, memorable short link that redirects to decentralized storage — forever.',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Colors.white.withValues(alpha: 0.74),
                   fontSize: isMobile ? 16 : 19,
@@ -307,9 +284,9 @@ class _HeroCopy extends StatelessWidget {
               runSpacing: 14,
               alignment: WrapAlignment.center,
               children: const [
-                _HeroStat(value: '10MB', label: 'FILE LIMIT'),
-                _HeroStat(value: '6 CHAR', label: 'SHORT CODE'),
-                _HeroStat(value: '3 EPOCH', label: 'WALRUS STORE'),
+                _HeroStat(value: '70+', label: 'FILES STORED'),
+                _HeroStat(value: '100%', label: 'DECENTRALIZED'),
+                _HeroStat(value: '5/5', label: 'EASE OF ACCESS'),
               ],
             ),
           ),
@@ -326,7 +303,7 @@ class _HeroCopy extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: () => context.go('/upload'),
                   icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-                  label: const Text('Launch App'),
+                  label: const Text('Start Shortening'),
                   style: FilledButton.styleFrom(
                     padding: EdgeInsets.symmetric(
                       horizontal: isMobile ? 28 : 44,
@@ -344,7 +321,7 @@ class _HeroCopy extends StatelessWidget {
                     Icons.keyboard_double_arrow_down_rounded,
                     size: 20,
                   ),
-                  label: const Text('Why Perma.link'),
+                  label: const Text('See How It Works'),
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(
                       horizontal: isMobile ? 28 : 44,
@@ -440,61 +417,6 @@ class _HeroStat extends StatelessWidget {
   }
 }
 
-
-class _WalrusBadge extends StatelessWidget {
-  const _WalrusBadge({required this.isMobile});
-
-  final bool isMobile;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : 28,
-        vertical: isMobile ? 10 : 14,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.primary.withValues(alpha: 0.16),
-            AppTheme.accent.withValues(alpha: 0.06),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.35)),
-        boxShadow: AppTheme.glowShadow(opacity: 0.12, blur: 20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppTheme.primary,
-              boxShadow: AppTheme.glowShadow(opacity: 0.8, blur: 8),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            'BUILT ON WALRUS PROTOCOL',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppTheme.primaryLight,
-              fontSize: isMobile ? 10 : 12,
-              letterSpacing: 2.5,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
 class _SlantedTransition extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -530,8 +452,8 @@ class _SlantedClipper extends CustomClipper<Path> {
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
-class _AboutSection extends StatelessWidget {
-  const _AboutSection();
+class _WhySection extends StatelessWidget {
+  const _WhySection();
 
   @override
   Widget build(BuildContext context) {
@@ -540,21 +462,21 @@ class _AboutSection extends StatelessWidget {
     final pillars = const [
       _AboutPillar(
         icon: Icons.link_off_rounded,
-        title: 'Blob IDs are not shareable',
+        title: 'Blob IDs aren\'t shareable',
         description:
-            'Walrus gives files durable storage, but raw blob identifiers are not friendly for everyday sharing.',
+            'No one remembers wAtcbEtCYyCX2gPc... Short links are universal.',
       ),
       _AboutPillar(
         icon: Icons.public_rounded,
         title: 'Files should outlive feeds',
         description:
-            'Short links make decentralized files easier to post in chats, docs, portfolios, and project updates.',
+            'Decentralized storage means your files persist even when platforms disappear.',
       ),
       _AboutPillar(
         icon: Icons.query_stats_rounded,
-        title: 'Sharing still needs feedback',
+        title: 'Sharing needs feedback',
         description:
-            'Light analytics help you know whether a link is being used without turning the product into surveillance.',
+            'Track clicks, monitor engagement, and know who\'s accessing your files.',
       ),
     ];
 
@@ -572,7 +494,7 @@ class _AboutSection extends StatelessWidget {
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const _AboutCopy(),
+                    const _WhyCopy(),
                     const SizedBox(height: 30),
                     ...pillars.map(
                       (pillar) => Padding(
@@ -585,7 +507,7 @@ class _AboutSection extends StatelessWidget {
               : Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Expanded(flex: 9, child: _AboutCopy()),
+                    const Expanded(flex: 9, child: _WhyCopy()),
                     const SizedBox(width: 44),
                     Expanded(
                       flex: 10,
@@ -608,8 +530,8 @@ class _AboutSection extends StatelessWidget {
   }
 }
 
-class _AboutCopy extends StatelessWidget {
-  const _AboutCopy();
+class _WhyCopy extends StatelessWidget {
+  const _WhyCopy();
 
   @override
   Widget build(BuildContext context) {
@@ -619,7 +541,7 @@ class _AboutCopy extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'ABOUT PERMA.LINK',
+          'WHY PERMA.LINK',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: AppTheme.primary,
             fontWeight: FontWeight.w800,
@@ -628,7 +550,7 @@ class _AboutCopy extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          'Why this product exists',
+          'Raw blob IDs\naren\'t shareable',
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             fontSize: isMobile ? 32 : 48,
             fontWeight: FontWeight.w900,
@@ -637,7 +559,7 @@ class _AboutCopy extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text(
-          'Perma.link sits between permanent storage and everyday sharing. It gives creators, builders, and teams a clean URL for files stored on Walrus, so decentralized storage feels as simple as sending a normal link.',
+          'Walrus gives you permanent, decentralized file storage — but those 40-character blob IDs aren\'t something you\'d put in a tweet, a resume, or an email signature. Perma.link bridges the gap between decentralized permanence and human-friendly sharing.',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: Colors.white.withValues(alpha: 0.72),
             height: 1.65,
@@ -741,9 +663,9 @@ class _AboutPillar extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -762,8 +684,8 @@ class _AboutPillar extends StatelessWidget {
   }
 }
 
-class _ShowcaseSection extends StatelessWidget {
-  const _ShowcaseSection();
+class _FeaturesSection extends StatelessWidget {
+  const _FeaturesSection();
 
   @override
   Widget build(BuildContext context) {
@@ -780,8 +702,8 @@ class _ShowcaseSection extends StatelessWidget {
         child: Column(
           children: [
             _SectionHeader(
-              eyebrow: 'FEATURE SHOWCASE',
-              title: 'Every link is a permanent file route',
+              eyebrow: 'FEATURES',
+              title: 'Everything you need,\nnothing you don\'t',
               subtitle:
                   'Upload, store, shorten, track, and redirect through one fast Walrus-backed flow.',
               compact: isMobile,
@@ -843,6 +765,15 @@ class _ShowcaseSection extends StatelessWidget {
                           icon: Icons.bolt_outlined,
                           accent: AppTheme.primary,
                         ),
+                        _FeatureCard(
+                          tag: 'SECURITY',
+                          title: 'Decentralized',
+                          description:
+                              'No single point of failure. Files distributed across the Walrus network.',
+                          number: '06',
+                          icon: Icons.security_rounded,
+                          accent: AppTheme.accent,
+                        ),
                       ],
                     ),
                   ),
@@ -856,8 +787,8 @@ class _ShowcaseSection extends StatelessWidget {
   }
 }
 
-class _ProtocolSection extends StatelessWidget {
-  const _ProtocolSection();
+class _WorkflowSection extends StatelessWidget {
+  const _WorkflowSection();
 
   @override
   Widget build(BuildContext context) {
@@ -902,7 +833,7 @@ class _ProtocolSection extends StatelessWidget {
         child: Column(
           children: [
             _SectionHeader(
-              eyebrow: 'PROTOCOL WORKFLOW',
+              eyebrow: 'HOW IT WORKS',
               title: 'Three moves from file to forever',
               subtitle:
                   'The landing page stays cinematic, but the upload flow remains simple and direct.',
@@ -1042,9 +973,9 @@ class _ProtocolFact extends StatelessWidget {
               const SizedBox(height: 5),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -1093,7 +1024,7 @@ class _FeatureCardState extends State<_FeatureCard> {
           margin: const EdgeInsets.symmetric(horizontal: 16),
           padding: EdgeInsets.all(isMobile ? 20 : 24),
           transform: _hovered
-              ? (Matrix4.identity()..translate(0.0, -8.0))
+              ? Matrix4.translationValues(0.0, -8.0, 0.0)
               : Matrix4.identity(),
           decoration: BoxDecoration(
             color: _hovered ? AppTheme.surfaceAlt : AppTheme.surface,
@@ -1244,7 +1175,7 @@ class _ProtocolCardState extends State<_ProtocolCard> {
           duration: const Duration(milliseconds: 240),
           padding: const EdgeInsets.all(26),
           transform: _hovered
-              ? (Matrix4.identity()..translate(0.0, -6.0))
+              ? Matrix4.translationValues(0.0, -6.0, 0.0)
               : Matrix4.identity(),
           decoration:
               AppTheme.glassCard(
@@ -1347,44 +1278,158 @@ class _BottomCTASection extends StatelessWidget {
           ),
           boxShadow: AppTheme.glowShadow(opacity: 0.08, blur: 54),
         ),
-        child: Column(
-          children: [
-            Text(
-              'READY TO SHARE FOREVER?',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontSize: isMobile ? 34 : 56,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
+        child: isMobile
+            ? Column(
+                children: [
+                  Text(
+                    'Ready?',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Start sharing\npermanent links today',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontSize: isMobile ? 34 : 56,
+                      fontWeight: FontWeight.w900,
+                      height: 1.1,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No sign-up required. Upload a file, get a short link, done. Powered by Walrus decentralized storage.',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.66),
+                      height: 1.55,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 38),
+                  FilledButton.icon(
+                    onPressed: () => context.go('/upload'),
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+                    label: const Text('Launch App'),
+                    style: FilledButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 32 : 48,
+                        vertical: isMobile ? 18 : 24,
+                      ),
+                      textStyle: TextStyle(
+                        fontSize: isMobile ? 16 : 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ready?',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 2,
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Start sharing\npermanent links today',
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(
+                                fontSize: 56,
+                                fontWeight: FontWeight.w900,
+                                height: 1.1,
+                              ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No sign-up required. Upload a file, get a short link, done. Powered by Walrus decentralized storage.',
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.66),
+                                height: 1.55,
+                              ),
+                        ),
+                        const SizedBox(height: 38),
+                        FilledButton.icon(
+                          onPressed: () => context.go('/upload'),
+                          icon: const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 20,
+                          ),
+                          label: const Text('Launch App'),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 48,
+                              vertical: 24,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 48),
+                  _CTAVisual(),
+                ],
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Upload a file, mint a permanent short route, and send it anywhere.',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Colors.white.withValues(alpha: 0.66),
-                height: 1.55,
+      ),
+    );
+  }
+}
+
+class _CTAVisual extends StatelessWidget {
+  const _CTAVisual();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 120,
+      height: 120,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppTheme.primary.withValues(alpha: 0.3),
+                width: 2,
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 38),
-            FilledButton.icon(
-              onPressed: () => context.go('/upload'),
-              icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-              label: const Text('Start Uploading'),
-              style: FilledButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 32 : 48,
-                  vertical: isMobile ? 18 : 24,
-                ),
-                textStyle: TextStyle(
-                  fontSize: isMobile ? 16 : 18,
-                  fontWeight: FontWeight.bold,
-                ),
+          ),
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppTheme.accent.withValues(alpha: 0.4),
+                width: 2,
               ),
             ),
-          ],
-        ),
+          ),
+          Icon(
+            Icons.link_rounded,
+            size: 40,
+            color: Colors.white.withValues(alpha: 0.9),
+          ),
+        ],
       ),
     );
   }
@@ -1409,14 +1454,6 @@ class _Footer extends StatelessWidget {
             'Perma.link - Powered by Walrus',
             style: Theme.of(context).textTheme.labelSmall,
             textAlign: TextAlign.center,
-          ),
-          TextButton(
-            onPressed: () => context.go('/docs'),
-            child: const Text('Docs'),
-          ),
-          TextButton(
-            onPressed: () => context.go('/about'),
-            child: const Text('About'),
           ),
         ],
       ),

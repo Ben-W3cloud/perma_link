@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 class StaggeredFadeIn extends StatefulWidget {
@@ -24,6 +25,7 @@ class _StaggeredFadeInState extends State<StaggeredFadeIn>
   late final Animation<double> _opacity;
   late final Animation<Offset> _translation;
   bool _completed = false;
+  Timer? _delayTimer;
 
   @override
   void initState() {
@@ -47,13 +49,14 @@ class _StaggeredFadeInState extends State<StaggeredFadeIn>
       }
     });
 
-    Future.delayed(widget.delay, () {
+    _delayTimer = Timer(widget.delay, () {
       if (mounted) _controller.forward();
     });
   }
 
   @override
   void dispose() {
+    _delayTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }

@@ -7,12 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('shows the landing screen and navigates to upload screen', (tester) async {
-    // Force a real-laptop viewport so the desktop navbar renders (the default
-    // 800x600 test surface triggers the < 900 mobile breakpoint and hides the
-    // navbar's "Start Uploading" CTA we want to tap).
-    await tester.binding.setSurfaceSize(const Size(1280, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+  testWidgets('shows the landing screen and navigates to upload screen', (
+    tester,
+  ) async {
+    // Force a desktop viewport (default 800×600 triggers the <900 mobile navbar).
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(const PermaLinkApp());
     await tester.pump(const Duration(milliseconds: 100));
@@ -24,23 +26,29 @@ void main() {
     );
 
     // Verify Landing Screen elements
-    expect(
-      find.textContaining('PERMA', findRichText: true),
-      findsWidgets,
-    );
-    expect(find.text('Launch App'), findsOneWidget);
-    expect(find.text('Start Uploading'), findsWidgets);
+    expect(find.textContaining('PERMA', findRichText: true), findsWidgets);
+    expect(find.text('Launch App'), findsWidgets);
+    expect(find.text('Start Shortening'), findsWidgets);
 
-    // Navigate to Upload Screen via the navbar CTA
-    await tester.tap(find.text('Start Uploading').first);
+    // Navbar uses rocket icon + "Launch App"; hero section uses arrow_forward icon
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AppNavBar),
+        matching: find.byIcon(Icons.rocket_launch_rounded),
+      ),
+    );
     await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump(const Duration(milliseconds: 100)); // allow route transition to complete
+    await tester.pump(
+      const Duration(milliseconds: 100),
+    ); // allow route transition to complete
 
     // Verify Upload Screen elements
     expect(find.text('Drop your file here'), findsOneWidget);
     expect(find.text('Browse files'), findsOneWidget);
     expect(
-      find.text('Upload any file. Get a permanent short link. Powered by Walrus.'),
+      find.text(
+        'Permanent short links for your files. Powered by Walrus decentralized storage.',
+      ),
       findsOneWidget,
     );
   });

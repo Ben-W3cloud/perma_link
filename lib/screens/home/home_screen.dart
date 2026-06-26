@@ -13,6 +13,7 @@ import 'package:fluffy_link/services/link_service.dart';
 import 'package:fluffy_link/services/walrus_service.dart';
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
+import 'package:fluffy_link/screens/home/widgets/animated_grid_background.dart';
 
 enum UploadState { idle, uploading, done, error }
 
@@ -176,34 +177,47 @@ class _HomeScreenState extends State<HomeScreen> {
       currentRoute: '/upload',
       maxContentWidth: 560,
       scrollable: false,
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spaceLg),
-        child: switch (_state) {
-          UploadState.idle => _UploadPicker(
-            onBrowse: _handleFilePick,
-            onFileDrop: _upload,
+      child: Stack(
+        children: [
+          const AnimatedGridBackground(),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: switch (_state) {
+                  UploadState.idle => _UploadPicker(
+                    onBrowse: _handleFilePick,
+                    onFileDrop: _upload,
+                  ),
+                  UploadState.uploading => UploadProgress(
+                    fileName: _uploadingFileName,
+                    phase: _phase,
+                  ),
+                  UploadState.done => SuccessCard(
+                    link: _createdLink!,
+                    metadata: _uploadMetadata!,
+                    onReset: _reset,
+                  ),
+                  UploadState.error => ErrorCard(
+                    message:
+                        _errorMessage ?? 'Something went wrong. Try again.',
+                    onRetry: _reset,
+                  ),
+                },
+              ),
+              if (_state == UploadState.idle) ...[
+                const SizedBox(height: AppTheme.spaceXl),
+              ],
+            ],
           ),
-          UploadState.uploading => UploadProgress(
-            fileName: _uploadingFileName,
-            phase: _phase,
-          ),
-          UploadState.done => SuccessCard(
-            link: _createdLink!,
-            metadata: _uploadMetadata!,
-            onReset: _reset,
-          ),
-          UploadState.error => ErrorCard(
-            message: _errorMessage ?? 'Something went wrong. Try again.',
-            onRetry: _reset,
-          ),
-        },
+        ],
       ),
     );
   }
 
   @override
   void dispose() {
-    _walrus.dispose().ignore();
+    _walrus.dispose();
     super.dispose();
   }
 }
@@ -223,55 +237,253 @@ class _UploadPicker extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const _Logo(),
-        const SizedBox(height: 16),
-        Text(
-          'Upload any file. Get a permanent short link. Powered by Walrus.',
-          style: TextStyle(color: AppTheme.muted, fontSize: 14, height: 1.5),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 32),
-        DropZone(onFileDrop: onFileDrop),
-        const SizedBox(height: 16),
-        TextButton.icon(
-          onPressed: onBrowse,
-          icon: const Icon(Icons.folder_open_outlined),
-          label: const Text('Browse files'),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Any file up to 10MB',
-          style: TextStyle(color: AppTheme.mutedDim, fontSize: 13),
-        ),
+        const _EnhancedLogo(),
+        const SizedBox(height: 24),
+        _EnhancedDropZone(onFileDrop: onFileDrop),
+        const SizedBox(height: 20),
+        _GhostBrowseButton(onBrowse: onBrowse),
+        const SizedBox(height: 12),
+        _TrustBadges(),
       ],
     );
   }
 }
 
-class _Logo extends StatelessWidget {
-  const _Logo();
+class _EnhancedLogo extends StatefulWidget {
+  const _EnhancedLogo();
+
+  @override
+  State<_EnhancedLogo> createState() => _EnhancedLogoState();
+}
+
+class _EnhancedLogoState extends State<_EnhancedLogo>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(18),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final scale = 1.0 + (_controller.value * 0.03);
+        final glow = _controller.value * 0.2;
+
+        return Transform.scale(
+          scale: scale,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: AppTheme.primaryGradient,
+              boxShadow: AppTheme.glowShadow(opacity: 0.4 + glow, blur: 36),
+            ),
+            child: const Icon(
+              Icons.link_rounded,
+              size: 36,
+              color: Colors.white,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _EnhancedDropZone extends StatefulWidget {
+  const _EnhancedDropZone({required this.onFileDrop});
+
+  final Future<void> Function(PlatformFile file) onFileDrop;
+
+  @override
+  State<_EnhancedDropZone> createState() => _EnhancedDropZoneState();
+}
+
+class _EnhancedDropZoneState extends State<_EnhancedDropZone>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  bool _isDragging = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => _setDragging(true),
+      onExit: (_) => _setDragging(false),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          height: 180,
+          width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: AppTheme.primaryGradient,
-            boxShadow: AppTheme.glowShadow(opacity: 0.35, blur: 28),
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: _isDragging
+                  ? [
+                      AppTheme.primary.withValues(alpha: 0.15),
+                      AppTheme.accent.withValues(alpha: 0.1),
+                    ]
+                  : [
+                      AppTheme.surface.withValues(alpha: 0.8),
+                      AppTheme.surfaceAlt.withValues(alpha: 0.6),
+                    ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: _isDragging
+                  ? AppTheme.accent.withValues(alpha: 0.6)
+                  : AppTheme.border.withValues(alpha: 0.3),
+              width: 2,
+            ),
+            boxShadow: _isDragging
+                ? AppTheme.glowShadow(opacity: 0.15, blur: 20)
+                : AppTheme.glowShadow(opacity: 0.15, blur: 24),
           ),
-          child: const Icon(Icons.link_rounded, size: 32, color: Colors.white),
+          child: DropZone(onFileDrop: widget.onFileDrop),
         ),
-        const SizedBox(height: 20),
-        Text(
-          'PERMA.LINK',
-          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-            fontSize: 38,
+      ),
+    );
+  }
+
+  void _setDragging(bool hovering) {
+    setState(() => _isDragging = hovering);
+    if (hovering) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+  }
+}
+
+class _GhostBrowseButton extends StatelessWidget {
+  const _GhostBrowseButton({required this.onBrowse});
+
+  final VoidCallback onBrowse;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onBrowse,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppTheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppTheme.primary.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.folder_open_outlined,
+                size: 18,
+                color: AppTheme.primary,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Browse files',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: AppTheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
+    );
+  }
+}
+
+class _TrustBadges extends StatelessWidget {
+  const _TrustBadges();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _TrustBadge(icon: Icons.lock, label: '10 MB max'),
+            const SizedBox(width: 16),
+            _TrustBadge(icon: Icons.cloud_queue, label: 'Walrus decentralized'),
+            const SizedBox(width: 16),
+            _TrustBadge(icon: Icons.person_off, label: 'No account'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TrustBadge extends StatelessWidget {
+  const _TrustBadge({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.surface.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.border.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppTheme.primary),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppTheme.muted,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

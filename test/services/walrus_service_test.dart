@@ -21,6 +21,9 @@ void main() {
   });
 
   test('throws when response has no blob ID', () {
-    expect(() => WalrusService.extractBlobId({}), throwsA(isA<WalrusUploadException>()));
+    expect(
+      () => WalrusService.extractBlobId({}),
+      throwsA(isA<WalrusUploadException>()),
+    );
   });
 }

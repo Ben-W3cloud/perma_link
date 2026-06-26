@@ -165,7 +165,10 @@ class _RedirectMessage extends StatelessWidget {
               if (message != null) ...[
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                   decoration: AppTheme.glassCard(borderRadius: 12),
                   child: Text(
                     message!,

@@ -57,18 +57,27 @@ class _SuccessCardState extends State<SuccessCard> {
   }
 
   Future<void> _shareNative() async {
-    await shareUrl(
-      title: 'Perma.link',
-      url: widget.link.shortUrl,
-    );
+    await shareUrl(title: 'Perma.link', url: widget.link.shortUrl);
   }
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
-    final hour = date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
+    final hour = date.hour > 12
+        ? date.hour - 12
+        : (date.hour == 0 ? 12 : date.hour);
     final amPm = date.hour >= 12 ? 'PM' : 'AM';
     final minute = date.minute.toString().padLeft(2, '0');
     return '${months[date.month - 1]} ${date.day}, ${date.year} $hour:$minute $amPm';
@@ -86,14 +95,14 @@ class _SuccessCardState extends State<SuccessCard> {
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF059669), Color(0xFF10B981)],
+            gradient: LinearGradient(
+              colors: [AppTheme.primary, AppTheme.primaryDark],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                color: AppTheme.primary.withValues(alpha: 0.35),
                 blurRadius: 28,
               ),
             ],
@@ -103,9 +112,9 @@ class _SuccessCardState extends State<SuccessCard> {
         const SizedBox(height: 20),
         Text(
           'Your link is ready',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 24),
 
@@ -165,11 +174,15 @@ class _SuccessCardState extends State<SuccessCard> {
           ),
           child: Column(
             children: [
-              _MetaRow(icon: Icons.insert_drive_file_outlined, text: meta.fileName),
+              _MetaRow(
+                icon: Icons.insert_drive_file_outlined,
+                text: meta.fileName,
+              ),
               const SizedBox(height: 4),
               _MetaRow(
                 icon: Icons.data_usage_outlined,
-                text: '${FileUtils.formatBytes(meta.fileSize)} \u00B7 ${meta.mimeType}',
+                text:
+                    '${FileUtils.formatBytes(meta.fileSize)} \u00B7 ${meta.mimeType}',
               ),
               const SizedBox(height: 4),
               _MetaRow(
@@ -211,7 +224,7 @@ class _LinkBox extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(color: AppTheme.mutedDim, fontSize: 12),
+          style: TextStyle(color: AppTheme.mutedDim, fontSize: 12),
         ),
         const SizedBox(height: 6),
         Container(
@@ -227,7 +240,7 @@ class _LinkBox extends StatelessWidget {
               Expanded(
                 child: Text(
                   url,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'monospace',
                     fontSize: 14,
                     color: AppTheme.onSurface,
@@ -296,7 +309,7 @@ class _MetaRow extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(color: AppTheme.muted, fontSize: 13),
+            style: TextStyle(color: AppTheme.muted, fontSize: 13),
             overflow: TextOverflow.ellipsis,
           ),
         ),

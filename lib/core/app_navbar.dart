@@ -3,9 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class AppNavBar extends StatelessWidget {
-  const AppNavBar({super.key, required this.currentRoute});
+  const AppNavBar({
+    super.key,
+    required this.currentRoute,
+    this.scrollController,
+    this.onScrollToWhy,
+    this.onScrollToFeatures,
+    this.onScrollToWorkflow,
+  });
 
   final String currentRoute;
+  final ScrollController? scrollController;
+  final VoidCallback? onScrollToWhy;
+  final VoidCallback? onScrollToFeatures;
+  final VoidCallback? onScrollToWorkflow;
 
   @override
   Widget build(BuildContext context) {
@@ -74,41 +85,54 @@ class AppNavBar extends StatelessWidget {
             const Spacer(),
             if (!isMobile) ...[
               _NavLink(
-                label: 'HOME',
-                isActive: currentRoute == '/',
-                onTap: () => context.go('/'),
+                label: 'WHY',
+                isActive: false,
+                onTap: onScrollToWhy,
               ),
               _NavLink(
-                label: 'ABOUT',
-                isActive: currentRoute == '/about',
-                onTap: () => context.go('/about'),
+                label: 'FEATURES',
+                isActive: false,
+                onTap: onScrollToFeatures,
+              ),
+              _NavLink(
+                label: 'HOW IT WORKS',
+                isActive: false,
+                onTap: onScrollToWorkflow,
               ),
               const SizedBox(width: 12),
             ],
             if (isMobile)
-              IconButton(
-                onPressed: () => _showMobileMenu(context),
-                icon: const Icon(Icons.menu_rounded),
-                color: AppTheme.onSurface,
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => _showMobileMenu(context),
+                    icon: const Icon(Icons.menu_rounded),
+                    color: AppTheme.onSurface,
+                  ),
+                ],
               )
             else
-              FilledButton.icon(
-                onPressed: () => context.go('/upload'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 22,
-                    vertical: 12,
+              Row(
+                children: [
+                  FilledButton.icon(
+                    onPressed: () => context.go('/upload'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      shadowColor: AppTheme.primary.withValues(alpha: 0.4),
+                      elevation: 4,
+                    ),
+                    icon: const Icon(Icons.rocket_launch_rounded, size: 15),
+                    label: const Text('Launch App'),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  shadowColor: AppTheme.primary.withValues(alpha: 0.4),
-                  elevation: 4,
-                ),
-                icon: const Icon(Icons.rocket_launch_rounded, size: 15),
-                label: const Text('Launch App'),
+                ],
               ),
           ],
         ),
@@ -130,17 +154,24 @@ class AppNavBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _MobileNavItem(
-              label: 'HOME',
+              label: 'WHY',
               onTap: () {
                 Navigator.pop(context);
-                context.go('/');
+                onScrollToWhy?.call();
               },
             ),
             _MobileNavItem(
-              label: 'ABOUT',
+              label: 'FEATURES',
               onTap: () {
                 Navigator.pop(context);
-                context.go('/about');
+                onScrollToFeatures?.call();
+              },
+            ),
+            _MobileNavItem(
+              label: 'HOW IT WORKS',
+              onTap: () {
+                Navigator.pop(context);
+                onScrollToWorkflow?.call();
               },
             ),
             _MobileNavItem(
@@ -166,7 +197,7 @@ class _NavLink extends StatefulWidget {
 
   final String label;
   final bool isActive;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   State<_NavLink> createState() => _NavLinkState();
@@ -184,7 +215,7 @@ class _NavLinkState extends State<_NavLink> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      cursor: SystemMouseCursors.click,
+      cursor: widget.onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(

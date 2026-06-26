@@ -3,7 +3,6 @@ import 'package:fluffy_link/screens/home/home_screen.dart';
 import 'package:fluffy_link/screens/landing/landing_screen.dart';
 import 'package:fluffy_link/screens/redirect/redirect_screen.dart';
 import 'package:fluffy_link/screens/stats/stats_screen.dart';
-import 'package:fluffy_link/screens/about/about_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,7 +16,6 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(path: '/upload', builder: (context, state) => const HomeScreen()),
     GoRoute(path: '/', builder: (context, state) => const LandingScreen()),
-    GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
     GoRoute(
       path: '/:code',
       builder: (context, state) {

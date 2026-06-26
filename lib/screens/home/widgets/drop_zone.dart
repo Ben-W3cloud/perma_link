@@ -40,7 +40,7 @@ class _DropZoneState extends State<DropZone> {
       onExit: (_) => setState(() => _hovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        height: 200,
+        height: 160,
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: _hovered

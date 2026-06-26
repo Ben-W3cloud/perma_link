@@ -2,11 +2,7 @@ import 'package:fluffy_link/core/theme.dart';
 import 'package:flutter/material.dart';
 
 class ErrorCard extends StatelessWidget {
-  const ErrorCard({
-    super.key,
-    required this.message,
-    required this.onRetry,
-  });
+  const ErrorCard({super.key, required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;
@@ -40,10 +36,7 @@ class ErrorCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        Text(
-          'Upload failed',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        Text('Upload failed', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),

@@ -43,9 +43,9 @@ class UploadProgress extends StatelessWidget {
         const SizedBox(height: 28),
         Text(
           fileName,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: AppTheme.onSurfaceBright,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(color: AppTheme.onSurfaceBright),
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
         ),
@@ -121,14 +121,13 @@ class _StepRow extends StatelessWidget {
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ] else ...[
-          Icon(
-            Icons.circle_outlined,
-            size: 16,
-            color: AppTheme.mutedDim,
-          ),
+          Icon(Icons.circle_outlined, size: 16, color: AppTheme.mutedDim),
         ],
         const SizedBox(width: 12),
-        Text(label, style: TextStyle(color: textColor, fontWeight: weight)),
+        Text(
+          label,
+          style: TextStyle(color: textColor, fontWeight: weight),
+        ),
       ],
     );
   }
