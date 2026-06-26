@@ -276,22 +276,6 @@ class _HeroCopy extends StatelessWidget {
           ),
         ),
         StaggeredFadeIn(
-          delay: const Duration(milliseconds: 610),
-          child: Padding(
-            padding: EdgeInsets.only(top: isMobile ? 22 : 26),
-            child: Wrap(
-              spacing: 14,
-              runSpacing: 14,
-              alignment: WrapAlignment.center,
-              children: const [
-                _HeroStat(value: '70+', label: 'FILES STORED'),
-                _HeroStat(value: '100%', label: 'DECENTRALIZED'),
-                _HeroStat(value: '5/5', label: 'EASE OF ACCESS'),
-              ],
-            ),
-          ),
-        ),
-        StaggeredFadeIn(
           delay: const Duration(milliseconds: 720),
           child: Padding(
             padding: const EdgeInsets.only(top: 36),
@@ -337,6 +321,17 @@ class _HeroCopy extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: 32),
+        Wrap(
+          spacing: 14,
+          runSpacing: 14,
+          alignment: WrapAlignment.center,
+          children: const [
+            _AnimatedStat(target: 70, label: 'FILES STORED'),
+            _AnimatedStat(target: 100, label: 'DECENTRALIZED'),
+            _AnimatedStat(target: 5, label: 'EASE OF ACCESS'),
+          ],
+        ),
       ],
     );
   }
@@ -377,11 +372,43 @@ class _HeroBadge extends StatelessWidget {
   }
 }
 
-class _HeroStat extends StatelessWidget {
-  const _HeroStat({required this.value, required this.label});
+class _AnimatedStat extends StatefulWidget {
+  const _AnimatedStat({required this.target, required this.label, this.duration = const Duration(milliseconds: 1500)});
 
-  final String value;
+  final int target;
   final String label;
+  final Duration duration;
+
+  @override
+  State<_AnimatedStat> createState() => _AnimatedStatState();
+}
+
+class _AnimatedStatState extends State<_AnimatedStat> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<int> _countAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration,
+    );
+    
+    _countAnimation = IntTween(begin: 0, end: widget.target).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -396,16 +423,21 @@ class _HeroStat extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-            ),
+          AnimatedBuilder(
+            animation: _countAnimation,
+            builder: (context, child) {
+              return Text(
+                '${_countAnimation.value}${widget.target > 100 ? '%' : widget.target == 5 ? '/5' : '+'}',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              );
+            },
           ),
           const SizedBox(height: 5),
           Text(
-            label,
+            widget.label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Colors.white54,
               letterSpacing: 1.2,
