@@ -241,166 +241,168 @@ class _HeroCopy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // ── Status badge ──
-        StaggeredFadeIn(
-          delay: const Duration(milliseconds: 80),
-          child: _StatusBadge(),
-        ),
-        const SizedBox(height: 20),
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // ── Status badge ──
+          StaggeredFadeIn(
+            delay: const Duration(milliseconds: 80),
+            child: _StatusBadge(),
+          ),
+          const SizedBox(height: 20),
 
-        // ── Headline ──
-        StaggeredFadeIn(
-          delay: const Duration(milliseconds: 200),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 780),
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  fontSize: isMobile ? 36 : 64,
-                  fontWeight: FontWeight.w900,
-                  height: 1.05,
-                  letterSpacing: -1.0,
-                  color: AppTheme.onSurfaceBright,
+          // ── Headline ──
+          StaggeredFadeIn(
+            delay: const Duration(milliseconds: 200),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 780),
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    fontSize: isMobile ? 36 : 64,
+                    fontWeight: FontWeight.w900,
+                    height: 1.05,
+                    letterSpacing: -1.0,
+                    color: AppTheme.onSurfaceBright,
+                  ),
+                  children: [
+                    const TextSpan(text: 'Short links.\n'),
+                    TextSpan(
+                      text: 'Permanent',
+                      style: TextStyle(
+                        foreground: Paint()
+                          ..shader = const LinearGradient(
+                            colors: [AppTheme.primary, AppTheme.primaryLight],
+                          ).createShader(const Rect.fromLTWH(0, 0, 400, 80)),
+                      ),
+                    ),
+                    const TextSpan(text: ' files.'),
+                  ],
                 ),
-                children: [
-                  const TextSpan(text: 'Short links.\n'),
-                  TextSpan(
-                    text: 'Permanent',
+              ),
+            ),
+          ),
+          SizedBox(height: isMobile ? 18 : 24),
+
+          // ── Subtitle ──
+          StaggeredFadeIn(
+            delay: const Duration(milliseconds: 400),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Text(
+                'Upload any file. Get a short link. Share it everywhere.\nStored on Walrus — decentralized, permanent, unstoppable.',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppTheme.muted,
+                  fontSize: isMobile ? 15 : 18,
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          SizedBox(height: isMobile ? 28 : 36),
+
+          // ── CTA buttons ──
+          StaggeredFadeIn(
+            delay: const Duration(milliseconds: 600),
+            child: Wrap(
+              spacing: 14,
+              runSpacing: 12,
+              alignment: WrapAlignment.center,
+              children: [
+                FilledButton.icon(
+                  onPressed: () => context.go('/upload'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: const Color(0xFF04241F),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 24 : 32,
+                      vertical: isMobile ? 14 : 18,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(Icons.upload_rounded, size: 18),
+                  label: Text(
+                    'Upload a file',
                     style: TextStyle(
-                      foreground: Paint()
-                        ..shader = const LinearGradient(
-                          colors: [AppTheme.primary, AppTheme.primaryLight],
-                        ).createShader(const Rect.fromLTWH(0, 0, 400, 80)),
+                      fontSize: isMobile ? 15 : 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const TextSpan(text: ' files.'),
-                ],
-              ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onExplore,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.onSurface,
+                    side: BorderSide(color: AppTheme.border),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile ? 24 : 32,
+                      vertical: isMobile ? 14 : 18,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.keyboard_double_arrow_down_rounded,
+                    size: 18,
+                  ),
+                  label: Text(
+                    'See how it works',
+                    style: TextStyle(
+                      fontSize: isMobile ? 15 : 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        SizedBox(height: isMobile ? 18 : 24),
+          SizedBox(height: isMobile ? 24 : 32),
 
-        // ── Subtitle ──
-        StaggeredFadeIn(
-          delay: const Duration(milliseconds: 400),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Text(
-              'Upload any file. Get a short link. Share it everywhere.\nStored on Walrus — decentralized, permanent, unstoppable.',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.muted,
-                fontSize: isMobile ? 15 : 18,
-                height: 1.6,
-              ),
-              textAlign: TextAlign.center,
+          // ── Demo card ──
+          StaggeredFadeIn(
+            delay: const Duration(milliseconds: 800),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: isMobile ? 340 : 520),
+              child: const _DemoCard(),
             ),
           ),
-        ),
-        SizedBox(height: isMobile ? 28 : 36),
 
-        // ── CTA buttons ──
-        StaggeredFadeIn(
-          delay: const Duration(milliseconds: 600),
-          child: Wrap(
-            spacing: 14,
-            runSpacing: 12,
-            alignment: WrapAlignment.center,
+          // ── Scroll indicator ──
+          const SizedBox(height: 16),
+          Column(
             children: [
-              FilledButton.icon(
-                onPressed: () => context.go('/upload'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: const Color(0xFF04241F),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isMobile ? 24 : 32,
-                    vertical: isMobile ? 14 : 18,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  elevation: 0,
-                ),
-                icon: const Icon(Icons.upload_rounded, size: 18),
-                label: Text(
-                  'Upload a file',
-                  style: TextStyle(
-                    fontSize: isMobile ? 15 : 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+              Text(
+                'SCROLL',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppTheme.muted,
+                  letterSpacing: 3,
+                  fontSize: 9,
                 ),
               ),
-              OutlinedButton.icon(
-                onPressed: onExplore,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.onSurface,
-                  side: BorderSide(color: AppTheme.border),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isMobile ? 24 : 32,
-                    vertical: isMobile ? 14 : 18,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                icon: const Icon(
-                  Icons.keyboard_double_arrow_down_rounded,
-                  size: 18,
-                ),
-                label: Text(
-                  'See how it works',
-                  style: TextStyle(
-                    fontSize: isMobile ? 15 : 16,
-                    fontWeight: FontWeight.w600,
+              const SizedBox(height: 6),
+              Container(
+                width: 1,
+                height: 32,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [AppTheme.primary, Colors.transparent],
                   ),
                 ),
               ),
             ],
           ),
-        ),
-        SizedBox(height: isMobile ? 24 : 32),
-
-        // ── Demo card ──
-        StaggeredFadeIn(
-          delay: const Duration(milliseconds: 800),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: isMobile ? 340 : 520),
-            child: const _DemoCard(),
-          ),
-        ),
-
-        // ── Scroll indicator ──
-        const SizedBox(height: 16),
-        Column(
-          children: [
-            Text(
-              'SCROLL',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppTheme.muted,
-                letterSpacing: 3,
-                fontSize: 9,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Container(
-              width: 1,
-              height: 32,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [AppTheme.primary, Colors.transparent],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -1209,52 +1211,53 @@ class _FeatureCardState extends State<_FeatureCard>
                     child: child,
                   ),
                   child: Container(
-                  padding: const EdgeInsets.all(26),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppTheme.primary.withValues(alpha: 0.10),
-                        const Color(0xFF070B10),
+                    padding: const EdgeInsets.all(26),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppTheme.primary.withValues(alpha: 0.10),
+                          const Color(0xFF070B10),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _TagChip(label: 'DEEP DIVE'),
+                        const SizedBox(height: 12),
+                        Text(
+                          widget.title,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+                        Flexible(
+                          child: Text(
+                            widget.deepDive,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppTheme.muted, height: 1.6),
+                            overflow: TextOverflow.fade,
+                          ),
+                        ),
+                        const Spacer(),
+                        Divider(
+                          color: AppTheme.primary.withValues(alpha: 0.15),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '↑ hover to explore',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(color: AppTheme.muted, fontSize: 10),
+                        ),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const _TagChip(label: 'DEEP DIVE'),
-                      const SizedBox(height: 12),
-                      Text(
-                        widget.title,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 18,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Flexible(
-                        child: Text(
-                          widget.deepDive,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppTheme.muted, height: 1.6),
-                          overflow: TextOverflow.fade,
-                        ),
-                      ),
-                      const Spacer(),
-                      Divider(color: AppTheme.primary.withValues(alpha: 0.15)),
-                      const SizedBox(height: 6),
-                      Text(
-                        '↑ hover to explore',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppTheme.muted,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 ),
               ),
               // Top teal border glow on hover

@@ -92,6 +92,21 @@ class AppNavBar extends StatelessWidget {
               _NavLink(label: 'Features', onTap: onScrollToFeatures),
               _NavLink(label: 'Protocol', onTap: onScrollToWorkflow),
               const SizedBox(width: 16),
+              // Launch App button with rocket icon
+              Semantics(
+                label: 'Launch App',
+                child: IconButton(
+                  onPressed: () => context.go('/upload'),
+                  icon: const Icon(Icons.rocket_launch_rounded),
+                  tooltip: 'Launch App',
+                  style: IconButton.styleFrom(
+                    foregroundColor: AppTheme.onSurface,
+                    backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(10),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
             ],
             if (isMobile)
               IconButton(

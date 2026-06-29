@@ -27,8 +27,8 @@ void main() {
 
     // Verify Landing Screen elements
     expect(find.textContaining('PERMA', findRichText: true), findsWidgets);
-    expect(find.text('Launch App'), findsWidgets);
-    expect(find.text('Start Shortening'), findsWidgets);
+    expect(find.text('Launch App'), findsOneWidget); // Now finds the semantics label
+    expect(find.text('Upload a file'), findsOneWidget); // Updated from 'Start Shortening'
 
     // Navbar uses rocket icon + "Launch App"; hero section uses arrow_forward icon
     await tester.tap(
@@ -89,5 +89,9 @@ void main() {
     expect(find.text('$baseUrl/s/abc123'), findsOneWidget);
     expect(find.text('Share link'), findsOneWidget);
     expect(find.text('Stats link'), findsOneWidget);
+    // Verify action buttons - should have View and Download, but not Copy
+    expect(find.text('View'), findsOneWidget);
+    expect(find.text('Download'), findsOneWidget);
+    expect(find.text('Copy'), findsNothing); // Verify copy button is removed
   });
 }
