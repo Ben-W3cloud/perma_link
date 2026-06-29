@@ -383,19 +383,21 @@ class _HeroCopy extends StatelessWidget {
                 'SCROLL',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: AppTheme.muted,
-                  letterSpacing: 3,
+                  letterSpacing: 2,
                   fontSize: 9,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
+              const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.muted, size: 16),
+              const SizedBox(height: 4),
               Container(
                 width: 1,
-                height: 32,
-                decoration: const BoxDecoration(
+                height: 24,
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [AppTheme.primary, Colors.transparent],
+                    colors: [AppTheme.primary.withValues(alpha: 0.3), Colors.transparent],
                   ),
                 ),
               ),
@@ -512,7 +514,7 @@ class _DemoCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppTheme.primary.withValues(alpha: 0.25)),
-        boxShadow: AppTheme.glowShadow(opacity: 0.20, blur: 60),
+        boxShadow: AppTheme.glowShadow(opacity: 0.10, blur: 40),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

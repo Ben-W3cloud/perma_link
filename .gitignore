@@ -26,7 +26,10 @@ build/
 *.env
 secrets.dart
 secrets.yaml
+build/
+build/web/
 
+.claude
 # ── VS Code ──────────────────────────────────────────────────────
 .vscode/settings.json
 .vscode/tasks.json
@@ -86,7 +89,3 @@ yarn.lock
 
 # ── Vercel ──────────────────────────────────────────────────────
 .vercel/
-
-build/
-build/web/
-.claude

@@ -1,6 +1,7 @@
 import 'package:fluffy_link/core/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AppNavBar extends StatelessWidget {
   const AppNavBar({
@@ -92,17 +93,20 @@ class AppNavBar extends StatelessWidget {
               _NavLink(label: 'Features', onTap: onScrollToFeatures),
               _NavLink(label: 'Protocol', onTap: onScrollToWorkflow),
               const SizedBox(width: 16),
-              // Launch App button with rocket icon
+              // Launch A File button with rocket icon and text
               Semantics(
-                label: 'Launch App',
-                child: IconButton(
+                label: 'Launch A File',
+                child: TextButton.icon(
                   onPressed: () => context.go('/upload'),
-                  icon: const Icon(Icons.rocket_launch_rounded),
-                  tooltip: 'Launch App',
-                  style: IconButton.styleFrom(
+                  icon: const Icon(Icons.rocket_launch_rounded, size: 16),
+                  label: const Text('Launch A File'),
+                  style: TextButton.styleFrom(
                     foregroundColor: AppTheme.onSurface,
                     backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -115,49 +119,25 @@ class AppNavBar extends StatelessWidget {
                 color: AppTheme.onSurface,
               )
             else
-              Row(
-                children: [
-                  // Upload button
-                  FilledButton.icon(
-                    onPressed: () => context.go('/upload'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      foregroundColor: const Color(0xFF04241F),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 11,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      elevation: 0,
-                      shadowColor: Colors.transparent,
-                    ),
-                    icon: const Icon(Icons.upload_rounded, size: 15),
-                    label: const Text(
-                      'Upload',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
+              // GitHub button - now takes you to the GitHub repository
+              OutlinedButton.icon(
+                onPressed: () => launchUrl(
+                  Uri.parse('https://github.com/Ben-W3cloud/perma_link'),
+                  mode: LaunchMode.externalApplication,
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.muted,
+                  side: BorderSide(color: AppTheme.border),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 11,
                   ),
-                  const SizedBox(width: 8),
-                  // GitHub ghost button
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.muted,
-                      side: BorderSide(color: AppTheme.border),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 11,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    icon: const _GitHubIcon(),
-                    label: const Text('GitHub', style: TextStyle(fontSize: 13)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ],
+                ),
+                icon: const _GitHubIcon(),
+                label: const Text('GitHub', style: TextStyle(fontSize: 13)),
               ),
           ],
         ),
