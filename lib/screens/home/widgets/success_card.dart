@@ -1,6 +1,6 @@
 import 'package:fluffy_link/core/theme.dart';
+import 'package:fluffy_link/core/utils/file_download.dart';
 import 'package:fluffy_link/core/utils/file_utils.dart';
-import 'package:fluffy_link/core/utils/web_share.dart';
 import 'package:fluffy_link/models/link_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -144,17 +144,11 @@ class _SuccessCardState extends State<SuccessCard> {
             ),
             const SizedBox(width: 12),
             _ActionButton(
-              icon: Icons.copy_outlined,
-              label: 'Copy',
-              onPressed: () => _copy(widget.link.shortUrl),
-            ),
-            const SizedBox(width: 12),
-            _ActionButton(
               icon: Icons.download_rounded,
               label: 'Download',
-              onPressed: () => launchUrl(
-                Uri.parse(widget.link.shortUrl),
-                mode: LaunchMode.externalApplication,
+              onPressed: () => downloadFile(
+                url: widget.link.shortUrl,
+                filename: widget.metadata.fileName,
               ),
             ),
           ],
