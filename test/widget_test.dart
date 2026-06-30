@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('shows the landing screen and navigates to upload screen', (
+  testWidgets('shows the landing screen and redirects upload to auth', (
     tester,
   ) async {
     // Force a desktop viewport (default 800×600 triggers the <900 mobile navbar).
@@ -42,15 +42,10 @@ void main() {
       const Duration(milliseconds: 100),
     ); // allow route transition to complete
 
-    // Verify Upload Screen elements
-    expect(find.text('Drop your file here'), findsOneWidget);
-    expect(find.text('Browse files'), findsOneWidget);
-    expect(
-      find.text(
-        'Permanent short links for your files. Powered by Walrus decentralized storage.',
-      ),
-      findsOneWidget,
-    );
+    // Upload is protected; unauthenticated users land on the auth page.
+    expect(find.text('Welcome to Perma.link'), findsOneWidget);
+    expect(find.text('Sign In'), findsWidgets);
+    expect(find.text('Sign Up'), findsWidgets);
   });
 
   testWidgets('success card shows share and stats links', (tester) async {
@@ -67,15 +62,17 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: SuccessCard(
-            link: link,
-            metadata: UploadMetadata(
-              fileName: 'test.png',
-              fileSize: 2048,
-              mimeType: 'image/png',
-              uploadedAt: DateTime.utc(2026, 6, 10),
+          body: SingleChildScrollView(
+            child: SuccessCard(
+              link: link,
+              metadata: UploadMetadata(
+                fileName: 'test.png',
+                fileSize: 2048,
+                mimeType: 'image/png',
+                uploadedAt: DateTime.utc(2026, 6, 10),
+              ),
+              onReset: () {},
             ),
-            onReset: () {},
           ),
         ),
       ),

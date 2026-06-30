@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -54,6 +56,18 @@ dependencies:
 
   # Typography
   google_fonts: ^6.2.1
+
+  # Local key/value persistence (uses localStorage on web)
+  shared_preferences: ^2.3.2
+
+  # QR code rendering on the success screen
+  qr_flutter: ^4.1.0
+
+  # PDF first-page preview on the file page (Phase 4)
+  pdfx: ^2.6.0
+
+  # UUID generation for session tokens
+  uuid: ^4.4.0
 
 dev_dependencies:
   flutter_test:

@@ -10,10 +10,14 @@ import 'package:fluffy_link/screens/home/widgets/error_card.dart';
 import 'package:fluffy_link/screens/home/widgets/success_card.dart';
 import 'package:fluffy_link/screens/home/widgets/upload_progress.dart';
 import 'package:fluffy_link/services/link_service.dart';
+import 'package:fluffy_link/services/upload_history_service.dart';
+import 'package:fluffy_link/services/auth_service.dart';
 import 'package:fluffy_link/services/walrus_service.dart';
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:fluffy_link/screens/home/widgets/animated_grid_background.dart';
+import 'package:fluffy_link/screens/home/widgets/recent_uploads_panel.dart';
+import 'package:go_router/go_router.dart';
 
 enum UploadState { idle, uploading, done, error }
 
@@ -22,11 +26,14 @@ class HomeScreen extends StatefulWidget {
     super.key,
     WalrusService? walrusService,
     LinkService? linkService,
+    UploadHistoryService? historyService,
   }) : _walrusService = walrusService,
-       _linkService = linkService;
+       _linkService = linkService,
+       _historyService = historyService;
 
   final WalrusService? _walrusService;
   final LinkService? _linkService;
+  final UploadHistoryService? _historyService;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -35,6 +42,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final WalrusService _walrus = widget._walrusService ?? WalrusService();
   late final LinkService _links = widget._linkService ?? LinkService();
+  late final UploadHistoryService _history =
+      widget._historyService ?? UploadHistoryService();
 
   UploadState _state = UploadState.idle;
   UploadPhase _phase = UploadPhase.walrus;
@@ -42,6 +51,31 @@ class _HomeScreenState extends State<HomeScreen> {
   LinkModel? _createdLink;
   UploadMetadata? _uploadMetadata;
   String _uploadingFileName = '';
+  List<UploadHistoryEntry> _recentUploads = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthAndRedirect();
+    _refreshQuotaAndHistory();
+  }
+
+  Future<void> _checkAuthAndRedirect() async {
+    final auth = AuthScope.of(context);
+    if (!auth.isInitialized) await auth.initialize();
+    if (auth.currentUser == null && mounted) {
+      final from = Uri.encodeComponent('/upload');
+      context.go('/auth?redirect=$from');
+    }
+  }
+
+  Future<void> _refreshQuotaAndHistory() async {
+    final history = await _history.recent();
+    if (!mounted) return;
+    setState(() {
+      _recentUploads = history;
+    });
+  }
 
   Future<void> _handleFilePick() async {
     developer.log('Opening file picker', name: 'HomeScreen._handleFilePick');
@@ -56,6 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _upload(PlatformFile file) async {
+    final user = AuthScope.of(context).currentUser;
+    if (user == null) {
+      context.go('/auth?redirect=${Uri.encodeComponent('/upload')}');
+      return;
+    }
+
     final bytes = file.bytes;
     if (bytes == null) {
       developer.log(
@@ -119,10 +159,12 @@ class _HomeScreenState extends State<HomeScreen> {
         name: 'HomeScreen._upload',
         error: {'blobId': blobId},
       );
+
       final link = await _links.createLink(
         blobId: blobId,
         fileName: file.name,
         fileSize: file.size,
+        userId: user.id,
       );
       developer.log(
         'LinkService.createLink returned',
@@ -131,16 +173,19 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       if (!mounted) return;
+      final metadata = UploadMetadata(
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: FileUtils.mimeFromExtension(file.extension),
+        uploadedAt: DateTime.now(),
+      );
       setState(() {
         _state = UploadState.done;
         _createdLink = link;
-        _uploadMetadata = UploadMetadata(
-          fileName: file.name,
-          fileSize: file.size,
-          mimeType: FileUtils.mimeFromExtension(file.extension),
-          uploadedAt: DateTime.now(),
-        );
+        _uploadMetadata = metadata;
       });
+      await _history.add(link, metadata);
+      await _refreshQuotaAndHistory();
     } catch (error, stack) {
       if (!mounted) return;
       developer.log(
@@ -176,41 +221,45 @@ class _HomeScreenState extends State<HomeScreen> {
     return PageScaffold(
       currentRoute: '/upload',
       maxContentWidth: 560,
-      scrollable: false,
+      scrollable: true,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           const Positioned.fill(child: AnimatedGridBackground()),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Center(
-                  child: switch (_state) {
-                    UploadState.idle => _UploadPicker(
-                      onBrowse: _handleFilePick,
-                      onFileDrop: _upload,
-                    ),
-                    UploadState.uploading => UploadProgress(
-                      fileName: _uploadingFileName,
-                      phase: _phase,
-                    ),
-                    UploadState.done => SuccessCard(
-                      link: _createdLink!,
-                      metadata: _uploadMetadata!,
-                      onReset: _reset,
-                    ),
-                    UploadState.error => ErrorCard(
-                      message:
-                          _errorMessage ?? 'Something went wrong. Try again.',
-                      onRetry: _reset,
-                    ),
-                  },
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final body = switch (_state) {
+                UploadState.idle => _UploadPicker(
+                  onBrowse: _handleFilePick,
+                  onFileDrop: _upload,
+                  recentUploads: _recentUploads,
                 ),
-              ),
-              if (_state == UploadState.idle) ...[
-                const SizedBox(height: AppTheme.spaceXl),
-              ],
-            ],
+                UploadState.uploading => UploadProgress(
+                  fileName: _uploadingFileName,
+                  phase: _phase,
+                ),
+                UploadState.done => SuccessCard(
+                  link: _createdLink!,
+                  metadata: _uploadMetadata!,
+                  onReset: _reset,
+                ),
+                UploadState.error => ErrorCard(
+                  message: _errorMessage ?? 'Something went wrong. Try again.',
+                  onRetry: _reset,
+                ),
+              };
+
+              return ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 620),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spaceMd,
+                    vertical: AppTheme.spaceLg,
+                  ),
+                  child: Center(child: body),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -229,10 +278,15 @@ class _HomeScreenState extends State<HomeScreen> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _UploadPicker extends StatelessWidget {
-  const _UploadPicker({required this.onBrowse, required this.onFileDrop});
+  const _UploadPicker({
+    required this.onBrowse,
+    required this.onFileDrop,
+    required this.recentUploads,
+  });
 
   final VoidCallback onBrowse;
   final Future<void> Function(PlatformFile file) onFileDrop;
+  final List<UploadHistoryEntry> recentUploads;
 
   @override
   Widget build(BuildContext context) {
@@ -245,7 +299,8 @@ class _UploadPicker extends StatelessWidget {
         const SizedBox(height: 20),
         _GhostBrowseButton(onBrowse: onBrowse),
         const SizedBox(height: 12),
-        _TrustBadges(),
+        const _TrustBadges(),
+        RecentUploadsPanel(entries: recentUploads),
       ],
     );
   }
@@ -402,7 +457,7 @@ class _GhostBrowseButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           decoration: BoxDecoration(
             color: AppTheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(13),
             border: Border.all(
               color: AppTheme.primary.withValues(alpha: 0.3),
               width: 1.5,
@@ -448,7 +503,12 @@ class _TrustBadges extends StatelessWidget {
             const SizedBox(width: 16),
             _TrustBadge(icon: Icons.cloud_queue, label: 'Walrus decentralized'),
             const SizedBox(width: 16),
-            _TrustBadge(icon: Icons.person_off, label: 'No account'),
+            _TrustBadge(icon: Icons.verified_user, label: 'Account required'),
+            const SizedBox(width: 16),
+            _TrustBadge(
+              icon: Icons.timer_outlined,
+              label: 'Quota enforced by Supabase',
+            ),
           ],
         ),
       ),
@@ -457,25 +517,31 @@ class _TrustBadges extends StatelessWidget {
 }
 
 class _TrustBadge extends StatelessWidget {
-  const _TrustBadge({required this.icon, required this.label});
+  const _TrustBadge({
+    required this.icon,
+    required this.label,
+  });
 
   final IconData icon;
   final String label;
 
   @override
   Widget build(BuildContext context) {
+    const accent = AppTheme.primary;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: AppTheme.surface.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.border.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: AppTheme.border.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: AppTheme.primary),
+          Icon(icon, size: 14, color: accent),
           const SizedBox(width: 6),
           Text(
             label,

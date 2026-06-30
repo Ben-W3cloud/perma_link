@@ -1,7 +1,11 @@
 import 'package:fluffy_link/core/theme.dart';
 import 'package:fluffy_link/core/utils/file_download.dart';
 import 'package:fluffy_link/core/utils/file_utils.dart';
+import 'package:fluffy_link/core/utils/web_share.dart';
 import 'package:fluffy_link/models/link_model.dart';
+import 'package:fluffy_link/screens/shared/embed_snippet_box.dart';
+import 'package:fluffy_link/screens/shared/qr_panel.dart';
+import 'package:fluffy_link/screens/shared/storage_status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -42,13 +46,43 @@ class _SuccessCardState extends State<SuccessCard> {
   Future<void> _copy(String url) async {
     await Clipboard.setData(ClipboardData(text: url));
     setState(() => _copiedUrl = url);
-
     await Future<void>.delayed(const Duration(seconds: 2));
     if (mounted) setState(() => _copiedUrl = null);
   }
 
+  Future<void> _handleDownload() async {
+    final ok = await downloadFile(
+      url: widget.link.walrusUrl,
+      filename: widget.metadata.fileName,
+      mimeType: widget.metadata.mimeType,
+    );
+    if (!mounted) return;
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Download failed — opening file instead')),
+      );
+      await launchUrl(
+        Uri.parse(widget.link.walrusUrl),
+        mode: LaunchMode.externalApplication,
+      );
+    }
+  }
+
+  Future<void> _handleShare() async {
+    final url = widget.link.shortUrl;
+    if (isWebShareSupported) {
+      final ok = await shareUrl(title: widget.metadata.fileName, url: url);
+      if (ok) return;
+    }
+    await Clipboard.setData(ClipboardData(text: url));
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Link copied to clipboard')));
+  }
+
   String _formatDate(DateTime date) {
-    final months = [
+    const months = [
       'Jan',
       'Feb',
       'Mar',
@@ -127,7 +161,10 @@ class _SuccessCardState extends State<SuccessCard> {
             ],
           ),
         ),
+        const SizedBox(height: 20),
 
+        // Shared QR panel
+        QrPanel(url: widget.link.shortUrl),
         const SizedBox(height: 20),
 
         // Action buttons
@@ -138,7 +175,7 @@ class _SuccessCardState extends State<SuccessCard> {
               icon: Icons.open_in_new_rounded,
               label: 'View',
               onPressed: () => launchUrl(
-                Uri.parse(widget.link.shortUrl),
+                Uri.parse(widget.link.walrusUrl),
                 mode: LaunchMode.externalApplication,
               ),
             ),
@@ -146,15 +183,34 @@ class _SuccessCardState extends State<SuccessCard> {
             _ActionButton(
               icon: Icons.download_rounded,
               label: 'Download',
-              onPressed: () => downloadFile(
-                url: widget.link.shortUrl,
-                filename: widget.metadata.fileName,
-              ),
+              onPressed: _handleDownload,
+            ),
+            const SizedBox(width: 12),
+            _ActionButton(
+              icon: Icons.ios_share_rounded,
+              label: 'Share',
+              onPressed: _handleShare,
             ),
           ],
         ),
-
         const SizedBox(height: 20),
+
+        // Embed snippet (shared component)
+        EmbedSnippetBox(
+          shortUrl: widget.link.shortUrl,
+          walrusUrl: widget.link.walrusUrl,
+          fileName: meta.fileName,
+          mimeType: meta.mimeType,
+          initiallyExpanded: false,
+        ),
+        const SizedBox(height: 12),
+
+        // Storage status (shared component)
+        StorageStatusChip(
+          blobId: widget.link.blobId,
+          createdAt: widget.link.createdAt,
+        ),
+        const SizedBox(height: 12),
 
         // File metadata
         Container(
@@ -173,7 +229,7 @@ class _SuccessCardState extends State<SuccessCard> {
               _MetaRow(
                 icon: Icons.data_usage_outlined,
                 text:
-                    '${FileUtils.formatBytes(meta.fileSize)} \u00B7 ${meta.mimeType}',
+                    '${FileUtils.formatBytes(meta.fileSize)} · ${meta.mimeType}',
               ),
               const SizedBox(height: 4),
               _MetaRow(
@@ -183,7 +239,6 @@ class _SuccessCardState extends State<SuccessCard> {
             ],
           ),
         ),
-
         const SizedBox(height: 24),
         TextButton.icon(
           onPressed: widget.onReset,

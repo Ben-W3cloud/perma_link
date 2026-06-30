@@ -12,7 +12,19 @@ void main() {
     );
     expect(
       ErrorMessages.forUpload(PostgrestException(message: 'db', code: '500')),
-      'Failed to save your link. Try again.',
+      "We couldn't save your link. Please try again.",
+    );
+    expect(
+      ErrorMessages.forUpload(
+        PostgrestException(message: 'upload_limit_exceeded', code: 'P0001'),
+      ),
+      "You've reached the upload limit (7 uploads per day). Please try again later.",
+    );
+    expect(
+      ErrorMessages.forUpload(
+        PostgrestException(message: 'not_authenticated', code: 'P0001'),
+      ),
+      'Please sign in before uploading a file.',
     );
     expect(
       ErrorMessages.forUpload(
@@ -22,7 +34,7 @@ void main() {
     );
     expect(
       ErrorMessages.forUpload(Exception('unknown')),
-      'Something went wrong. Try again.',
+      "We couldn't upload your file. Please try again.",
     );
   });
 

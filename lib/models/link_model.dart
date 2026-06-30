@@ -1,4 +1,5 @@
 import 'package:fluffy_link/core/constants.dart';
+import 'package:fluffy_link/core/utils/file_utils.dart';
 
 class LinkModel {
   const LinkModel({
@@ -9,6 +10,7 @@ class LinkModel {
     this.fileSize,
     required this.clickCount,
     required this.createdAt,
+    this.userId,
   });
 
   final String id;
@@ -18,6 +20,7 @@ class LinkModel {
   final int? fileSize;
   final int clickCount;
   final DateTime createdAt;
+  final String? userId;
 
   factory LinkModel.fromJson(Map<String, dynamic> json) {
     return LinkModel(
@@ -28,7 +31,20 @@ class LinkModel {
       fileSize: _readNullableInt(json['file_size']),
       clickCount: _readInt(json['click_count']) ?? 0,
       createdAt: DateTime.parse(json['created_at'] as String),
+      userId: json['user_id'] as String?,
     );
+  }
+
+  // Extension-derived MIME — the DB doesn't store the original Content-Type,
+  // so we infer from the filename. Phase 4 previews key off this.
+  String get mimeType {
+    final name = fileName;
+    if (name == null) return 'application/octet-stream';
+    final dot = name.lastIndexOf('.');
+    if (dot < 0 || dot == name.length - 1) {
+      return 'application/octet-stream';
+    }
+    return FileUtils.mimeFromExtension(name.substring(dot + 1));
   }
 
   String get _baseUrl {

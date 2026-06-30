@@ -1,12 +1,18 @@
 import 'dart:math' as math;
 
 import 'package:fluffy_link/core/app_navbar.dart';
+import 'package:fluffy_link/core/constants.dart';
 import 'package:fluffy_link/core/theme.dart';
 import 'package:fluffy_link/screens/landing/widgets/network_background.dart';
 import 'package:fluffy_link/screens/landing/widgets/marquee_scroller.dart';
 import 'package:fluffy_link/screens/landing/widgets/staggered_fade_in.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+Future<void> _openExternal(String url) async {
+  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+}
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -561,18 +567,25 @@ class _DemoCard extends StatelessWidget {
                   color: AppTheme.muted,
                 ),
               ),
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [AppTheme.primary, AppTheme.primaryLight],
-                ).createShader(bounds),
-                child: const Text(
-                  'perma.link/xk4r',
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+              Flexible(
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'permalink-gamma.vercel.app/',
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 13,
+                          color: AppTheme.mutedDim,
+                        ),
+                      ),
+                      const WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: _GradientCode('xk4r'),
+                      ),
+                    ],
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -704,8 +717,8 @@ class _WhySection extends StatelessWidget {
         tagLabel: 'THE FIX',
         title: 'Four characters, forever',
         description:
-            'We issue a short code — perma.link/xk4r — that resolves to your Walrus blob. Memorable. Shareable. Permanent.',
-        accentText: 'perma.link/xk4r',
+            'We issue a short code — like xk4r — that resolves to your Walrus blob. Memorable. Shareable. Permanent.',
+        accentText: 'permalink-gamma.vercel.app/xk4r',
       ),
       _WhyCard(
         svgPath: Icons.location_on_outlined,
@@ -1330,7 +1343,7 @@ class _WorkflowSection extends StatelessWidget {
         label: 'PERMA_ROUTE',
         title: 'Share',
         description:
-            'Hand out perma.link/xk4r. Visitors hit our edge, which resolves the code and streams the blob. Every visit tallies on the live stats page.',
+            'Hand out the short link — visitors hit our edge, which resolves the code and streams the blob. Every visit tallies on the live stats page.',
         icon: Icons.share_outlined,
       ),
     ];
@@ -1737,7 +1750,7 @@ class _BottomCTASection extends StatelessWidget {
                     ),
                   ),
                   OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () => _openExternal(AppConstants.githubUrl),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.muted,
                       side: BorderSide(color: AppTheme.border),
@@ -1867,7 +1880,7 @@ class _Footer extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Mainnet operational',
+                    'Testnet operational',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: AppTheme.muted,
                       fontSize: 11,
@@ -1884,14 +1897,12 @@ class _Footer extends StatelessWidget {
 
   static const _productLinks = [
     ('Upload', '/upload'),
-    ('Docs', ''),
-    ('Changelog', ''),
   ];
 
   static const _protocolLinks = [
-    ('GitHub', ''),
-    ('Walrus', ''),
-    ('Sui Explorer', ''),
+    ('GitHub', AppConstants.githubUrl),
+    ('Walrus', AppConstants.walrusSiteUrl),
+    ('Sui Explorer', AppConstants.suiExplorerUrl),
   ];
 }
 
@@ -1983,7 +1994,16 @@ class _FooterLinks extends StatelessWidget {
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
-                onTap: link.$2.isNotEmpty ? () => context.go(link.$2) : null,
+                onTap: link.$2.isEmpty
+                    ? null
+                    : () {
+                        final target = link.$2;
+                        if (target.startsWith('http')) {
+                          _openExternal(target);
+                        } else {
+                          context.go(target);
+                        }
+                      },
                 child: Text(
                   link.$1,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -2140,6 +2160,30 @@ class _ScrollRevealState extends State<_ScrollReveal>
     return FadeTransition(
       opacity: _opacity,
       child: SlideTransition(position: _translation, child: widget.child),
+    );
+  }
+}
+
+class _GradientCode extends StatelessWidget {
+  const _GradientCode(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return ShaderMask(
+      shaderCallback: (bounds) => const LinearGradient(
+        colors: [AppTheme.primary, AppTheme.primaryLight],
+      ).createShader(bounds),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontFamily: 'monospace',
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
     );
   }
 }
