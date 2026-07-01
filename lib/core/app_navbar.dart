@@ -82,38 +82,26 @@ class AppNavBar extends StatelessWidget {
             ),
             const Spacer(),
             if (!isMobile) ...[
-              _NavLink(label: 'Home', onTap: () => context.go('/')),
-              // Section anchors only render on the landing route; on other
-              // pages the GlobalKey targets don't exist, so the labels would
-              // be silently dead links.
-              if (onScrollToWhy != null)
-                _NavLink(label: 'Why', onTap: onScrollToWhy),
-              if (onScrollToFeatures != null)
-                _NavLink(label: 'Features', onTap: onScrollToFeatures),
-              if (onScrollToWorkflow != null)
-                _NavLink(label: 'Protocol', onTap: onScrollToWorkflow),
-              const SizedBox(width: 16),
-              // Launch A File button with rocket icon and text
-              Semantics(
-                label: 'Launch A File',
-                child: TextButton.icon(
-                  onPressed: () => context.go('/auth'),
-                  icon: const Icon(Icons.rocket_launch_rounded, size: 16),
-                  label: const Text('Launch A File'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppTheme.onSurface,
-                    backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+              Expanded(
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _NavLink(label: 'Home', onTap: () => context.go('/')),
+                      // Section anchors only render on the landing route; on other
+                      // pages the GlobalKey targets don't exist, so the labels would
+                      // be silently dead links.
+                      if (onScrollToWhy != null)
+                        _NavLink(label: 'Why', onTap: onScrollToWhy),
+                      if (onScrollToFeatures != null)
+                        _NavLink(label: 'Features', onTap: onScrollToFeatures),
+                      if (onScrollToWorkflow != null)
+                        _NavLink(label: 'Protocol', onTap: onScrollToWorkflow),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 16),
               _DashboardButton(),
               const SizedBox(width: 8),
               // GitHub repo link.
