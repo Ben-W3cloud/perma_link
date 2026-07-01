@@ -1075,9 +1075,9 @@ class _FeaturesSection extends StatelessWidget {
                         _FeatureCard(
                           tag: 'DROP ANY FILE',
                           title: 'Drop Any File',
-                          subtitle: 'PDFs, images, zips — anything under 10MB.',
+                          subtitle: 'PDFs, images, zips — anything under 120MB.',
                           deepDive:
-                              'Perma.link accepts any file type up to 10MB. Browsers stream your file directly to Walrus via the Dartus SDK — we never touch your bytes on a server. Drag, drop, done.',
+                              'Perma.link accepts any file type up to 120MB. Browsers stream your file directly to Walrus via the Dartus SDK — we never touch your bytes on a server. Drag, drop, done.',
                           number: '05 / 05',
                           icon: Icons.upload_file_outlined,
                         ),
@@ -1327,7 +1327,7 @@ class _WorkflowSection extends StatelessWidget {
         label: 'CLIENT_INPUT',
         title: 'Upload',
         description:
-            'Select any file under 10MB. The client streams it directly to the Walrus publisher nodes via the Dartus SDK. Your bytes never pass through a Perma.link server.',
+            'Select any file under 120MB. The client streams it directly to the Walrus publisher nodes via the Dartus SDK. Your bytes never pass through a Perma.link server.',
         icon: Icons.file_upload_outlined,
       ),
       _ProtocolCard(

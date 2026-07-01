@@ -65,16 +65,6 @@ The app expects these Dart defines at run/build time:
 
 Walrus publisher and aggregator URLs are currently configured in `lib/core/constants.dart`.
 
-## Supabase Setup
-
-Run the SQL migrations in `supabase/migrations` in order:
-
-1. `0001_phase1_auth.sql`
-2. `0002_production_auth_quota.sql`
-
-Enable Supabase email/password authentication in the Supabase dashboard. Add your production domain and local development URL to the allowed redirect/site URL configuration.
-
-The production migration adds authenticated ownership, RLS policies, and the `create_link_with_quota` RPC used by the app when saving uploaded links.
 
 ## Deployment
 

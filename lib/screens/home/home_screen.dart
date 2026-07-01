@@ -113,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
         name: 'HomeScreen._upload',
         error: {'file': file.name, 'size': file.size},
       );
-      _showError('File must be under 10MB');
+      _showError('File must be under 120MB');
       return;
     }
 

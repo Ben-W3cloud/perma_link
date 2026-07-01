@@ -17,6 +17,7 @@ class _AuthScreenState extends State<AuthScreen>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _showPassword = false;
   String? _errorMessage;
   late final TabController _tabController;
 
@@ -216,11 +217,24 @@ class _AuthScreenState extends State<AuthScreen>
             const SizedBox(height: 14),
             TextFormField(
               controller: _passwordController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Password',
-                prefixIcon: Icon(Icons.lock_outline_rounded, size: 18),
+                prefixIcon: const Icon(Icons.lock_outline_rounded, size: 18),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _showPassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showPassword = !_showPassword;
+                    });
+                  },
+                ),
               ),
-              obscureText: true,
+              obscureText: !_showPassword,
               enableSuggestions: false,
               autocorrect: false,
               validator: (value) {
