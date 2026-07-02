@@ -1,34 +1,55 @@
 # Perma.link
 
-Perma.link is a Flutter web app for uploading files to Walrus decentralized storage and sharing them through short, permanent links. Users sign in with Supabase Auth, upload a file, and get a short URL that resolves to a preview page and automatically starts a download.
+> Permanent short links for files stored on Walrus decentralized storage.
+
+Perma.link lets you upload any file, store it permanently on the Walrus network, and share it through a clean short URL like `perma.link/abc123`. Every link resolves to a file preview page that handles images, PDFs, video, audio, and text inline — and starts a download automatically for everything else. Built entirely in Flutter Web.
+
+---
+
+## What it does
+
+You sign in, drop a file, and get a short link in seconds. The file lives on Walrus decentralized storage — not on a server you maintain, not behind a SaaS subscription. The short code is stored in Supabase and maps to a Walrus blob ID. Anyone with the link can view or download the file without an account.
+
+Your dashboard shows every link you have created — with timestamps, click counts, copy actions, and the ability to delete links you no longer want to share. A rolling quota of 7 uploads per day per user keeps the service fair on the testnet.
+
+---
 
 ## Features
 
-- Email/password authentication with Supabase.
-- Authenticated uploads only.
-- Dashboard for uploaded links, timestamps, copy actions, stats, and deletion.
-- Server-side link creation quota: 7 uploads per authenticated user per rolling day.
-- Public short-link pages with automatic download and browser previews for images, PDFs, video, audio, and text files.
-- Walrus testnet storage integration.
-- Responsive Flutter web UI with protected upload and dashboard routes.
+- Email and password authentication via Supabase Auth
+- Authenticated uploads only — no anonymous abuse
+- File uploads up to 120MB stored on Walrus testnet
+- Short 6-character links generated per upload
+- Public file pages with inline preview for images, PDFs, video, audio, and plain text
+- Automatic download trigger for unsupported file types
+- Dashboard with all your links, upload dates, click counts, copy, and delete
+- Server-enforced quota — 7 uploads per authenticated user per rolling 24 hours via Supabase RPC
+- Fully responsive Flutter Web UI
+- Protected routes — upload and dashboard require auth, file pages are public
+
+---
 
 ## Tech Stack
 
-- Flutter web / Dart
-- Supabase Auth and Postgres
-- Walrus blob storage via `dartus`
-- `go_router` for routing
-- Vercel static hosting
+| Layer | Technology |
+|-------|------------|
+| Frontend | Flutter Web / Dart |
+| Auth + Database | Supabase Auth + Postgres |
+| File storage | Walrus testnet via Dartus SDK |
+| Routing | GoRouter |
+| Hosting | Vercel |
+
+---
 
 ## Local Development
 
-Install dependencies:
+**1. Install dependencies**
 
 ```bash
 flutter pub get
 ```
 
-Run locally:
+**2. Run locally**
 
 ```bash
 flutter run -d chrome \
@@ -36,65 +57,133 @@ flutter run -d chrome \
   --dart-define=SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Run tests:
+**3. Run tests**
 
 ```bash
 flutter test
 ```
 
-Analyze:
+**4. Analyze**
 
 ```bash
 flutter analyze
 ```
 
-Build for production:
+---
+
+## Environment Variables
+
+Credentials are passed at compile time via `--dart-define`. There is no `.env` file — Flutter Web builds them into the compiled output.
+
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | Your Supabase project URL |
+| `SUPABASE_ANON_KEY` | Your Supabase anon public key |
+
+Walrus publisher and aggregator URLs are in `lib/core/constants.dart`.
+
+---
+
+## Database Setup
+
+Run the migrations in `supabase/migrations/` against your Supabase project before first use. The `create_link_with_quota` RPC and all RLS policies are defined there. Confirm Supabase Auth has email/password sign-in enabled.
+
+---
+
+## Production Build
 
 ```bash
 flutter build web \
   --dart-define=SUPABASE_URL=https://your-project.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=your-anon-key
+  --dart-define=SUPABASE_ANON_KEY=your-anon-key \
+  --release
 ```
 
-## Environment Variables
+Output lands in `build/web/`. The included `vercel.json` rewrites all routes to `index.html` so direct visits to `/:code`, `/auth`, and `/dashboard` work correctly.
 
-The app expects these Dart defines at run/build time:
+**Pre-deploy checklist:**
+- [ ] `SUPABASE_URL` and `SUPABASE_ANON_KEY` set in Vercel environment variables
+- [ ] Supabase migrations applied
+- [ ] Supabase Auth email/password enabled
+- [ ] `appDomain` in `lib/core/constants.dart` set to your production domain
+- [ ] `flutter test` passes
+- [ ] `flutter analyze` returns no issues
+- [ ] `flutter build web` completes without errors
 
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
+---
 
-Walrus publisher and aggregator URLs are currently configured in `lib/core/constants.dart`.
+## Project Structure
 
+```
+lib/
+├── main.dart                       # Entry point, Supabase initialization
+├── app.dart                        # GoRouter setup, app shell
+├── core/
+│   ├── constants.dart              # Walrus endpoints, domain, limits
+│   ├── theme.dart                  # App theme
+│   └── utils/                      # Shared utilities
+├── screens/
+│   ├── landing/                    # Public marketing page
+│   ├── auth/                       # Sign in and sign up
+│   ├── upload/                     # File upload tool (auth required)
+│   ├── dashboard/                  # User link history (auth required)
+│   ├── file/                       # Public file preview page /:code
+│   └── stats/                      # Link stats
+├── services/
+│   ├── auth_service.dart           # Supabase Auth wrapper
+│   ├── link_service.dart           # Supabase link CRUD
+│   ├── walrus_service.dart         # Dartus SDK blob upload
+│   └── upload_history_service.dart
+supabase/
+└── migrations/                     # All schema and RLS migrations
+test/                               # Widget, service, and utility tests
+vercel.json                         # Catch-all rewrite for Flutter Web routing
+build.sh                            # Vercel build script
+```
 
-## Deployment
-
-This repo includes `vercel.json`, which serves the Flutter web build from `build/web` and rewrites routes back to `index.html` so direct visits like `/abc123`, `/auth`, and `/dashboard` work.
-
-Before deploying:
-
-- Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in your build environment.
-- Run the Supabase migrations.
-- Confirm Supabase Auth email/password is enabled.
-- Confirm the app domain in `lib/core/constants.dart` matches production.
-- Run `flutter test`, `flutter analyze`, and `flutter build web`.
-
-## Folder Structure
-
-- `lib/app.dart` - router and app shell.
-- `lib/main.dart` - Flutter/Supabase initialization.
-- `lib/screens` - landing, auth, dashboard, upload, file, and stats screens.
-- `lib/services` - Supabase auth/link services, Walrus upload service, and local upload history.
-- `lib/core` - theme, constants, shared utilities, and navigation.
-- `supabase/migrations` - database migrations.
-- `test` - widget, service, and utility tests.
+---
 
 ## Troubleshooting
 
-- Missing Supabase config: pass `SUPABASE_URL` and `SUPABASE_ANON_KEY` with `--dart-define`.
-- Upload quota errors: the authenticated user has reached 7 uploads in the last rolling day.
-- Direct routes 404 in production: confirm hosting rewrites all paths to `index.html`.
-- Links save but do not appear in the dashboard: confirm the `create_link_with_quota` RPC and RLS policies are installed.
+**Missing Supabase config**
+Pass `SUPABASE_URL` and `SUPABASE_ANON_KEY` via `--dart-define` at run or build time. The app throws on startup if either is empty.
 
-## License
+**Upload quota error**
+The signed-in user has reached 7 uploads in the last rolling 24 hours. Wait for the window to reset or use a different account for testing.
 
-Add the project license before public release.
+**Direct routes return 404 in production**
+Confirm `vercel.json` has the catch-all rewrite:
+```json
+{ "source": "/(.*)", "destination": "/index.html" }
+```
+
+**Links saved but not showing in dashboard**
+Confirm the `create_link_with_quota` RPC and RLS policies from the migrations are applied to your Supabase project.
+
+**File upload fails silently**
+Check the browser console for `UnsupportedError` — this means the Dartus SDK is attempting a `dart:io` HTTP call which is not supported on Flutter Web. Ensure `walrus_service.dart` is using the `http` package for the PUT request directly.
+
+---
+
+## Roadmap
+
+- [ ] Mainnet Walrus storage once `dart:io` is resolved in the Dartus SDK
+- [ ] Sui wallet connect as an alternative to email auth
+- [ ] QR code per link on the dashboard
+- [ ] File preview thumbnails in the dashboard
+- [ ] Programmatic upload API for developers
+- [ ] CLI tool
+
+---
+
+## Built With
+
+- [Flutter](https://flutter.dev)
+- [Dartus SDK](https://github.com/Immadominion/Dartus) — Flutter SDK for Walrus
+- [Walrus](https://walrus.xyz) — Decentralized storage on Sui
+- [Supabase](https://supabase.com)
+- [Vercel](https://vercel.com)
+
+---
+
+*License — add before public release.*
